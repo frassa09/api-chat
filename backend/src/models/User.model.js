@@ -29,4 +29,4 @@ export const User = sequelize.define('User', {
         type: DataTypes.TEXT,
         defaultValue: 'null'
     }
-}, {timestamps: true, tableName: 'user'})
+})

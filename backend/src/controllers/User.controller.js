@@ -4,6 +4,7 @@ import {
 } from "../database/schemas/User.schema.js";
 import bcrypt from "bcryptjs";
 import { User } from "../models/User.model.js";
+import { generateJwt } from "../middlewares/generateJwt.js";
 
 export const userController = {
   create: async (req, res) => {
@@ -65,9 +66,18 @@ export const userController = {
       );
 
       if (confirmPassword) {
+        const payload = {
+          userId: response.dataValues.id,
+          name: response.dataValues.name,
+          email: response.dataValues.email,
+        };
+
+        const token = generateJwt(payload);
+
         res.status(200).json({
           success: true,
-          message: "oi tudo bem",
+          message: "Login realizado com sucesso",
+          token,
         });
       } else {
         res.status(401).json({

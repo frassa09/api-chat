@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"
+
 function Login() {
   return (
     <main className="min-h-screen bg-white flex flex-col items-center px-6 pt-16">
@@ -40,9 +42,9 @@ function Login() {
 
       <p className="mt-6 text-sm text-esportivo">
         Sem conta?
-        <a href="#" className="font-medium text-cobalto underline">
-          Cadastre-se aqui
-        </a>
+        <Link to="/cadastro" className="font-medium text-cobalto underline">
+          Cadastre-se
+        </Link>
       </p>
     </main>
   )

@@ -3,18 +3,15 @@ import { Link } from "react-router-dom"
 function Cadastro() {
   return (
     <main className="min-h-screen bg-white flex flex-col items-center px-6 pt-16">
-      {/* Logo */}
       <div className="flex items-center gap-2 text-xl font-bold">
         <span>senAI</span>
         <span className="text-marinho">chat</span>
         <span className="text-royal">bot</span>
       </div>
 
-      {/* Título e subtítulo */}
       <h1 className="mt-16 text-3xl font-bold text-marinho">Criar sua conta</h1>
       <p className="mt-3 text-esportivo">Comece a conversar com o senAI</p>
-
-      {/* Formulário */}
+      
       <form className="mt-12 w-full max-w-md">
         <label className="block text-sm font-medium text-marinho">
           Nome

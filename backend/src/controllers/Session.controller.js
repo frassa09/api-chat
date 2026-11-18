@@ -1,21 +1,14 @@
 import { Session } from "../models/Session.model.js";
 
+const TITLE_MAX_LENGTH = 100;
+
 export const sessionController = {
   registerSessionOnDb: async (userId, firstMessage) => {
-    const sessionToSave = {
-        title: firstMessage,
-        status: 'active',
-        userId
-    };
+    const title =
+      firstMessage.length > TITLE_MAX_LENGTH
+        ? `${firstMessage.slice(0, TITLE_MAX_LENGTH - 3)}...`
+        : firstMessage;
 
-    try {
-        const response = await Session.create(sessionToSave, {returning: true, raw: true})
-
-        return response
-    } catch (err) {
-
-        console.log(err.message)
-        return err
-    }
+    return Session.create({ title, status: "active", userId });
   },
 };

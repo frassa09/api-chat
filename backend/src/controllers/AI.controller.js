@@ -1,4 +1,4 @@
-import { aiService } from "../services/ai.service.js";
+import { aiService, AiServiceError } from "../services/ai.service.js";
 import { messageController } from "./Message.controller.js";
 import { sessionController } from "./Session.controller.js";
 
@@ -9,26 +9,26 @@ export const aiController = {
     const { firstMessage, model } = req.body;
 
     try {
+      // Chama a IA primeiro: só grava no banco se ela responder.
+      const data = await aiService.generate(firstMessage, model);
+
       const responseSession = await sessionController.registerSessionOnDb(
         userId,
         firstMessage,
       );
+      const sessionId = responseSession.dataValues.id;
+
       const responseMessageUser = await messageController.registerMessageOnDb(
-        responseSession.dataValues.id,
+        sessionId,
         "user",
         firstMessage,
       );
 
-      const responseAi = await aiService.generate(firstMessage, model);
-      const data = await responseAi.json();
-
-      const responserMessageAi = await messageController.registerMessageOnDb(
-        responseSession.dataValues.id,
+      const responseMessageAi = await messageController.registerMessageOnDb(
+        sessionId,
         "ia",
         data.response,
-      );''
-
-      console.log(data);
+      );
 
       res.status(201).json({
         success: true,
@@ -37,16 +37,18 @@ export const aiController = {
         recordsOnDb: {
           messages: {
             user: responseMessageUser.dataValues,
-            ai: responserMessageAi.dataValues,
+            ai: responseMessageAi.dataValues,
           },
           session: responseSession.dataValues,
         },
       });
     } catch (err) {
       console.log(err.message);
-      res.status(501).json({
+
+      const isAiError = err instanceof AiServiceError;
+      res.status(isAiError ? 502 : 500).json({
         success: false,
-        error: err.message,
+        error: isAiError ? err.message : "Erro interno ao iniciar a sessão",
       });
     }
   },

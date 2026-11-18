@@ -5,11 +5,11 @@ import { sequelize } from "../database/init.js";
 export const User = sequelize.define('User', {
     name: {
         allowNull: false,
-        type: DataTypes.CHAR
+        type: DataTypes.STRING
     },
     email: {
         allowNull: false,
-        type: DataTypes.CHAR,
+        type: DataTypes.STRING,
         unique: true,
         validate: {
             isEmail: true
@@ -20,13 +20,11 @@ export const User = sequelize.define('User', {
         type: DataTypes.TEXT
     },
     preferred_model_ai: {
-        allowNull: false,
-        type: DataTypes.CHAR,
-        defaultValue: 'null'
+        allowNull: true,
+        type: DataTypes.STRING
     },
     system_instruction: {
-        allowNull: false,
-        type: DataTypes.TEXT,
-        defaultValue: 'null'
+        allowNull: true,
+        type: DataTypes.TEXT
     }
 })

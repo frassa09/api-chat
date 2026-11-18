@@ -3,6 +3,7 @@ import {
   loginUserSchema,
 } from "../database/schemas/User.schema.js";
 import bcrypt from "bcryptjs";
+import { UniqueConstraintError } from "sequelize";
 import { User } from "../models/User.model.js";
 import { generateJwt } from "../middlewares/generateJwt.js";
 
@@ -32,14 +33,25 @@ export const userController = {
 
       res.status(201).json({
         success: true,
-        data: response.dataValues,
+        data: {
+          id: response.id,
+          name: response.name,
+          email: response.email,
+        },
       });
     } catch (err) {
       console.log(err.message);
 
-      res.status(501).json({
+      if (err instanceof UniqueConstraintError) {
+        return res.status(409).json({
+          success: false,
+          message: "E-mail já cadastrado",
+        });
+      }
+
+      res.status(500).json({
         success: false,
-        message: err.message,
+        message: "Erro interno ao criar usuário",
       });
     }
   },
@@ -56,41 +68,37 @@ export const userController = {
     }
 
     try {
-      const response = await User.findOne({
+      const user = await User.findOne({
         where: { email: result.data.email },
       });
 
-      const confirmPassword = await bcrypt.compare(
-        result.data.password,
-        response.dataValues.password_hash,
-      );
+      const confirmPassword =
+        user && (await bcrypt.compare(result.data.password, user.password_hash));
 
-      if (confirmPassword) {
-        const payload = {
-          userId: response.dataValues.id,
-          name: response.dataValues.name,
-          email: response.dataValues.email,
-        };
-
-        const token = generateJwt(payload);
-
-        res.status(200).json({
-          success: true,
-          message: "Login realizado com sucesso",
-          token,
-        });
-      } else {
-        res.status(401).json({
+      if (!confirmPassword) {
+        return res.status(401).json({
           success: false,
-          message: "Nenhum registro encontrado",
+          message: "Credenciais inválidas",
         });
       }
+
+      const token = generateJwt({
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Login realizado com sucesso",
+        token,
+      });
     } catch (err) {
       console.log(err.message);
 
-      return res.status(401).json({
+      return res.status(500).json({
         success: false,
-        message: err.message,
+        message: "Erro interno ao realizar login",
       });
     }
   },

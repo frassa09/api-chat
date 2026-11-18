@@ -1,37 +1,38 @@
-import { createAiSchema } from "../database/schemas/Ai.schema";
+import { createAiSchema } from "../database/schemas/Ai.schema.js";
 
 const urlIa = process.env.API_AI_URL;
 
+export class AiServiceError extends Error {}
+
 export const aiService = {
   generate: async (prompt, model) => {
-    const jsonBody = JSON.stringify({
+    const result = createAiSchema.safeParse({
       model,
       prompt,
       stream: false,
     });
 
-    
+    if (!result.success) {
+      throw new AiServiceError("Erro na formatação da requisição");
+    }
 
+    let response;
     try {
-      
-      const result = createAiSchema.safeParse(jsonBody)
-
-      if(!result.success){
-        throw new Error('Erro na formatação da requisição')
-      }
-      const response = await fetch(`${urlIa}/api/generate`, {
+      response = await fetch(`${urlIa}/api/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: jsonBody,
+        body: JSON.stringify(result.data),
       });
-
-      if (response.ok) return response;
     } catch (err) {
-      console.log(err.message);
-
-      return err;
+      throw new AiServiceError(`Falha ao conectar com a IA: ${err.message}`);
     }
+
+    if (!response.ok) {
+      throw new AiServiceError(`IA respondeu HTTP ${response.status}`);
+    }
+
+    return response.json();
   },
 };

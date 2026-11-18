@@ -1,6 +1,6 @@
-import { Message } from "./Message.model";
-import { Session } from "./Session.model";
-import { User } from "./User.model";
+import { Message } from "./Message.model.js";
+import { Session } from "./Session.model.js";
+import { User } from "./User.model.js";
 
 
 

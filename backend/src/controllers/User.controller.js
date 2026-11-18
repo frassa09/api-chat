@@ -60,7 +60,7 @@ export const userController = {
         where: { email: result.data.email },
       });
 
-      const confirmPassword = bcrypt.compare(
+      const confirmPassword = await bcrypt.compare(
         result.data.password,
         response.dataValues.password_hash,
       );

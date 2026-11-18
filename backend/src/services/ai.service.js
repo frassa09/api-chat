@@ -1,3 +1,5 @@
+import { createAiSchema } from "../database/schemas/Ai.schema";
+
 const urlIa = process.env.API_AI_URL;
 
 export const aiService = {
@@ -5,10 +7,18 @@ export const aiService = {
     const jsonBody = JSON.stringify({
       model,
       prompt,
-      stream: false
+      stream: false,
     });
 
+    
+
     try {
+      
+      const result = createAiSchema.safeParse(jsonBody)
+
+      if(!result.success){
+        throw new Error('Erro na formatação da requisição')
+      }
       const response = await fetch(`${urlIa}/api/generate`, {
         method: "POST",
         headers: {
@@ -17,7 +27,7 @@ export const aiService = {
         body: jsonBody,
       });
 
-      return response;
+      if (response.ok) return response;
     } catch (err) {
       console.log(err.message);
 

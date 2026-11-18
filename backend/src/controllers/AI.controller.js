@@ -26,7 +26,7 @@ export const aiController = {
         responseSession.dataValues.id,
         "ia",
         data.response,
-      );
+      );''
 
       console.log(data);
 

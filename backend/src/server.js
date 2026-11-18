@@ -3,6 +3,7 @@ import express from 'express'
 import { sequelize } from './database/init.js'
 import { userRouter } from './routes/User.routes.js'
 import { aiRouter } from './routes/Ai.routes.js'
+import './models/relations.js'
 
 const app = express()
 const port = process.env.API_PORT

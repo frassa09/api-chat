@@ -1,8 +1,31 @@
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 
-export const generateJwt = (payload) => {
+const secret = process.env.JWT_SECRET;
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET)
+export const verifyJwt = (req, res, next) => {
+  const { authorization } = req.headers;
 
-    return token
-}
+  if (!authorization?.startsWith("Bearer ")) {
+    return res.status(401).send({
+      success: false,
+      message: "Não autorizado",
+    });
+  }
+
+  try {
+    const token = authorization.split(" ")[1];
+
+    const decoded = jwt.verify(token, secret);
+
+    req.userId = decoded.userId;
+    req.email = decoded.email;
+    req.name = decoded.name;
+
+    next();
+  } catch (err) {
+    return res.status(401).send({
+      success: false,
+      message: "Não autorizado",
+    });
+  }
+};

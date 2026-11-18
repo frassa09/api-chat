@@ -1,4 +1,5 @@
-import { sequelize } from "../database/init";
+import { DataTypes } from "sequelize";
+import { sequelize } from "../database/init.js";
 
 
 export const Session = sequelize.define('Session', {

@@ -1,11 +1,11 @@
 import { DataTypes } from "sequelize";
-import { sequelize } from "../database/init";
+import { sequelize } from "../database/init.js";
 
 
 export const Message = sequelize.define('Message', {
     content: {
         allowNull: false,
-        type: DataTypes.STRING
+        type: DataTypes.TEXT
     },
     role: {
         allowNull: false,

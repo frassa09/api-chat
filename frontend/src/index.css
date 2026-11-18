@@ -1,10 +1,3 @@
+/* Estilos gerados pelo Tailwind CSS v4.
+   Os componentes são estilizados com classes utilitárias em seus className. */
 @import "tailwindcss";
-
-@theme {
-  --color-celeste: #99c2ff;
-  --color-ceu: #66a3ff;
-  --color-esportivo: #3385ff;
-  --color-royal: #0066ff;
-  --color-cobalto: #0052cc;
-  --color-marinho: #003d99;
-}

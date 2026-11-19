@@ -12,7 +12,7 @@ function dateGroup(dateString) {
   return 'Anteriores';
 }
 
-export default function Sidebar({ conversations, selectedId, loading, onSelect, onNew, open, onClose }) {
+export default function Sidebar({ conversations, selectedId, loading, loggedIn, onSelect, onNew, open, onClose }) {
   const [search, setSearch] = useState('');
   const filtered = useMemo(() => conversations.filter((chat) =>
     chat.title.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR').trim())
@@ -82,7 +82,7 @@ export default function Sidebar({ conversations, selectedId, loading, onSelect, 
             <p role="status" className="px-3 text-xs leading-7 text-[#888fa5]">Carregando conversas...</p>
           ) : filtered.length === 0 ? (
             <p className="px-3 text-xs leading-7 text-[#888fa5]">
-              {search ? 'Nenhuma conversa encontrada.' : 'Suas conversas aparecerão aqui.'}
+              {!loggedIn ? 'Entre na sua conta para ver o histórico.' : search ? 'Nenhuma conversa encontrada.' : 'Suas conversas aparecerão aqui.'}
             </p>
           ) : (
             ['Hoje', 'Ontem', 'Anteriores'].map((group) => {
@@ -117,7 +117,6 @@ export default function Sidebar({ conversations, selectedId, loading, onSelect, 
         </nav>
 
         <div className="flex items-center gap-2 border-t border-[#292d3a] px-[23px] py-5 text-[11px] text-[#858ca0]">
-          {/* TODO: nome do usuário logado e botão de sair */}
           <span className="ml-auto text-[#5f687e]">v2.0</span>
         </div>
       </aside>

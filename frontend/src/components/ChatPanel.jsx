@@ -6,7 +6,7 @@ const MODEL_NAME = 'qwen2.5-coder:1.5b';
 const timeLabel = (date) => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(date));
 
 // O App troca a "key" deste componente ao mudar de conversa, o que já limpa o rascunho.
-export default function ChatPanel({ conversation, onSubmit, sending, loading, error, onOpenMenu }) {
+export default function ChatPanel({ conversation, onSubmit, sending, loading, error, onOpenMenu, headerActions }) {
   const [draft, setDraft] = useState('');
   const textareaRef = useRef(null);
   const bottomRef = useRef(null);
@@ -51,13 +51,16 @@ export default function ChatPanel({ conversation, onSubmit, sending, loading, er
             {conversation?.title ?? 'Nova conversa'}
           </h1>
         </div>
-        <span
-          className="flex shrink-0 items-center gap-2 rounded-full border border-[#e8eaf2] bg-white p-2.5 text-[11px] font-semibold text-[#6d7385] sm:px-3"
-          title={MODEL_NAME}
-        >
-          <span className="size-[7px] rounded-full bg-[#786af6]" />
-          <span className="hidden sm:inline">{MODEL_NAME}</span>
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span
+            className="flex shrink-0 items-center gap-2 rounded-full border border-[#e8eaf2] bg-white p-2.5 text-[11px] font-semibold text-[#6d7385] sm:px-3"
+            title={MODEL_NAME}
+          >
+            <span className="size-[7px] rounded-full bg-[#786af6]" />
+            <span className="hidden lg:inline">{MODEL_NAME}</span>
+          </span>
+          {headerActions}
+        </div>
       </header>
 
       <div className={`min-h-0 flex-1 overflow-y-auto ${!conversation && !loading ? 'flex items-center justify-center' : ''}`}>

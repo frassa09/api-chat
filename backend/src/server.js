@@ -30,6 +30,6 @@ app.get('/', (req, res) => {
 
 
 
-sequelize.sync({ alter: process.env.NODE_ENV !== 'production' }).then(() => {
+sequelize.sync({ alter: true, }).then(() => {
     app.listen(port, () => console.log(`Aplicação rodando em http://localhost:${port}/`))
 })

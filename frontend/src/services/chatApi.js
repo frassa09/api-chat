@@ -1,90 +1,105 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
-const TOKEN_KEY = 'token';
+import { jwtDecode } from 'jwt-decode';
 
-// ---- Token ---------------------------------------------------------------
-// TODO: salvar o token aqui depois do login (setToken) e limpar no logout.
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
-export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const setToken = (token) => localStorage.setItem(TOKEN_KEY, token);
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+// ---- Token ----
 
-export class UnauthorizedError extends Error {}
+export const getToken = () => localStorage.getItem('token');
+export const setToken = (token) => localStorage.setItem('token', token);
+export const clearToken = () => localStorage.removeItem('token');
 
-async function request(path, options = {}) {
+// Dados do usuário guardados no token: { userId, name, email, exp }
+export function getUser() {
   const token = getToken();
+  if (!token) return null;
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
-  });
-
-  const payload = await response.json().catch(() => ({}));
-
-  if (response.status === 401) {
+  const user = jwtDecode(token);
+  if (user.exp * 1000 < Date.now()) {
     clearToken();
-    throw new UnauthorizedError(payload.message || 'Sessão expirada, faça login novamente');
+    return null;
   }
-  if (!response.ok) {
-    throw new Error(payload.error || payload.message || `Falha na API: HTTP ${response.status}`);
-  }
-  return payload;
+  return user;
 }
 
-// ---- Usuário ---------------------------------------------------------------
+function headers() {
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getToken()}`,
+  };
+}
 
-// POST /user
-export const register = (name, email, password) => request('/user', {
-  method: 'POST',
-  body: JSON.stringify({ name, email, password }),
-});
+// Lê o JSON e lança erro (com o status) se a API recusar.
+async function readResponse(response) {
+  const body = await response.json();
+  if (!response.ok) {
+    const error = new Error(body.message || body.error || 'Erro na requisição');
+    error.status = response.status;
+    throw error;
+  }
+  return body;
+}
 
-// POST /user/login -> { token }
-export const login = (email, password) => request('/user/login', {
-  method: 'POST',
-  body: JSON.stringify({ email, password }),
-});
+// ---- Usuário ----
 
-// ---- Conversas --------------------------------------------------------------
-
-// GET /sessions -> [{ id, title, createdAt, updatedAt }]
-export const listConversations = async () => {
-  const { data } = await request('/sessions');
-  return data;
-};
-
-// GET /sessions/:id -> { id, title, updatedAt, messages: [{ id, role, content, createdAt }] }
-export const getConversation = async (id) => {
-  const { data } = await request(`/sessions/${encodeURIComponent(id)}`);
-  const { Messages, ...session } = data;
-  return { ...session, messages: Messages ?? [] };
-};
-
-// POST /ai/new-session -> cria a sessão com a primeira mensagem e a resposta da IA.
-export const createConversation = async (message) => {
-  const { data } = await request('/ai/new-session', {
+export async function register(name, email, password) {
+  const response = await fetch(`${API_URL}/user`, {
     method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ name, email, password }),
+  });
+  return readResponse(response);
+}
+
+export async function login(email, password) {
+  const response = await fetch(`${API_URL}/user/login`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ email, password }),
+  });
+  const body = await readResponse(response);
+  setToken(body.token);
+  return getUser();
+}
+
+// ---- Conversas ----
+
+export async function listConversations() {
+  const response = await fetch(`${API_URL}/sessions`, { headers: headers() });
+  const body = await readResponse(response);
+  return body.data;
+}
+
+export async function getConversation(id) {
+  const response = await fetch(`${API_URL}/sessions/${id}`, { headers: headers() });
+  const body = await readResponse(response);
+  return { ...body.data, messages: body.data.Messages };
+}
+
+export async function createConversation(message) {
+  const response = await fetch(`${API_URL}/ai/new-session`, {
+    method: 'POST',
+    headers: headers(),
     body: JSON.stringify({ firstMessage: message }),
   });
-  return getConversation(data.id);
-};
+  const body = await readResponse(response);
+  return body.data; // sessão criada
+}
 
-// POST /ai/sessions/:id/messages -> { userMessage, aiMessage }
-export const sendMessage = async (id, message) => {
-  const { data } = await request(`/ai/sessions/${encodeURIComponent(id)}/messages`, {
+export async function sendMessage(id, message) {
+  const response = await fetch(`${API_URL}/ai/sessions/${id}/messages`, {
     method: 'POST',
+    headers: headers(),
     body: JSON.stringify({ message }),
   });
-  return [data.userMessage, data.aiMessage];
-};
+  const body = await readResponse(response);
+  return [body.data.userMessage, body.data.aiMessage];
+}
 
-// POST /ai/sessions/:id/title -> gera com a IA um título de até 100 caracteres.
-export const generateTitle = async (id) => {
-  const { data } = await request(`/ai/sessions/${encodeURIComponent(id)}/title`, {
+export async function generateTitle(id) {
+  const response = await fetch(`${API_URL}/ai/sessions/${id}/title`, {
     method: 'POST',
+    headers: headers(),
   });
-  return data.title;
-};
+  const body = await readResponse(response);
+  return body.data.title;
+}

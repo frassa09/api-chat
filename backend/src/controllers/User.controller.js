@@ -15,7 +15,7 @@ export const userController = {
 
     if (!result.success) {
       return res.status(400).json({
-        message: result.error.message,
+        message: result.error.issues[0].message,
         success: false,
       });
     }
@@ -63,7 +63,7 @@ export const userController = {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: result.error.message,
+        message: result.error.issues[0].message,
       });
     }
 

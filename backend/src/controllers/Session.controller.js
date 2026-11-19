@@ -2,9 +2,14 @@ import { Session } from "../models/Session.model.js";
 import { Message } from "../models/Message.model.js";
 import { truncateTitle } from "../services/ai.service.js";
 
+// Ids de sessão são inteiros; qualquer outra coisa é tratada como "não encontrada".
+const isValidId = (id) => /^\d+$/.test(String(id));
+
 // Busca uma sessão garantindo que pertence ao usuário. Retorna null se não existir.
-export const findUserSession = (sessionId, userId) =>
-  Session.findOne({ where: { id: sessionId, userId, status: "active" } });
+export const findUserSession = async (sessionId, userId) => {
+  if (!isValidId(sessionId)) return null;
+  return Session.findOne({ where: { id: sessionId, userId, status: "active" } });
+};
 
 export const sessionController = {
   registerSessionOnDb: async (userId, firstMessage) => {
@@ -33,6 +38,12 @@ export const sessionController = {
 
   // GET /sessions/:id
   getWithMessages: async (req, res) => {
+    if (!isValidId(req.params.id)) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Sessão não encontrada" });
+    }
+
     try {
       const session = await Session.findOne({
         where: { id: req.params.id, userId: req.userId, status: "active" },

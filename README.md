@@ -107,3 +107,36 @@ $ cd analise-senai
 ```
 
 *(Nota: Adicione aqui os comandos específicos do framework que você escolheu para o Backend/Frontend, como `npm install` ou `pip install`, para complementar o seu fluxo real de desenvolvimento).*
+
+### Subindo a IA local (Docker)
+
+A IA roda em um container [Ollama](https://ollama.com) definido em `docker/Dockerfile`, que já baixa o modelo **`qwen2.5-coder:1.5b`** durante o build. É preciso ter o **Docker Desktop aberto** (ou o daemon do Docker rodando).
+
+```bash
+# 1. Gerar a imagem (só na primeira vez ou ao mudar o Dockerfile; baixa ~1 GB)
+docker build -t api-chat-ia ./docker
+
+# 2. Subir o container (a porta 11434 do Ollama fica exposta em localhost:8080)
+docker run -d --name api-chat-ia -p 8080:11434 api-chat-ia
+
+# 3. Conferir se o modelo está disponível
+curl http://localhost:8080/api/tags
+```
+
+A porta do lado esquerdo do `-p` precisa ser a mesma do `API_AI_URL` em `backend/.env` (ex.: `API_AI_URL=http://localhost:8080`).
+
+Para o dia a dia, depois de criado o container:
+
+```bash
+docker start api-chat-ia   # liga
+docker stop api-chat-ia    # desliga
+docker logs -f api-chat-ia # acompanha os logs
+```
+
+Para recriar do zero (por exemplo, após mudar o Dockerfile):
+
+```bash
+docker rm -f api-chat-ia
+docker build -t api-chat-ia ./docker
+docker run -d --name api-chat-ia -p 8080:11434 api-chat-ia
+```

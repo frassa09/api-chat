@@ -30,6 +30,6 @@ app.get('/', (req, res) => {
 
 
 
-sequelize.sync({ alter: true, }).then(() => {
+sequelize.sync().then(() => {
     app.listen(port, () => console.log(`Aplicação rodando em http://localhost:${port}/`))
 })

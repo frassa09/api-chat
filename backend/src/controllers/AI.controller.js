@@ -41,7 +41,6 @@ export const aiController = {
         order: [["createdAt", "ASC"]],
       });
 
-      // Chama a IA primeiro: só grava no banco se ela responder.
       const answer = await aiService.chat([
         ...history.map((m) => ({ role: toOllamaRole(m.role), content: m.content })),
         { role: "user", content },
@@ -83,7 +82,6 @@ export const aiController = {
     const firstMessage = result.data.message;
 
     try {
-      // Chama a IA primeiro: só grava no banco se ela responder.
       const answer = await aiService.chat([{ role: "user", content: firstMessage }]);
 
       const responseSession = await sessionController.registerSessionOnDb(

@@ -66,6 +66,8 @@ export const aiService = {
       throw new AiServiceError("Erro na formatação da requisição");
     }
 
+    console.log(result.data)
+
     const data = await callAi("/api/chat", result.data);
     return data.message?.content ?? "";
   },

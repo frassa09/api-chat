@@ -6,4 +6,8 @@ import { verifyJwt } from "../middlewares/verifyJwt.js";
 
 export const aiRouter = Router()
 
-aiRouter.post('/new-session', verifyJwt, aiController.initializeSessionAndGenerate)
+aiRouter.use(verifyJwt)
+
+aiRouter.post('/new-session', aiController.initializeSessionAndGenerate)
+aiRouter.post('/sessions/:id/messages', aiController.generate)
+aiRouter.post('/sessions/:id/title', aiController.generateTitle)

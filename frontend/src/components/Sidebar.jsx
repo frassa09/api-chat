@@ -117,8 +117,7 @@ export default function Sidebar({ conversations, selectedId, loading, onSelect, 
         </nav>
 
         <div className="flex items-center gap-2 border-t border-[#292d3a] px-[23px] py-5 text-[11px] text-[#858ca0]">
-          <span className="size-[7px] rounded-full bg-[#44cf9b] ring-4 ring-[#44cf9b]/10" />
-          API fake conectada
+          {/* TODO: nome do usuário logado e botão de sair */}
           <span className="ml-auto text-[#5f687e]">v2.0</span>
         </div>
       </aside>

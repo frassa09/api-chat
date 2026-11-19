@@ -1,22 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './Icons.jsx';
 
-export const MODELS = [
-  { id: 'equilibrado', name: 'Modelo Equilibrado', description: 'Para tarefas gerais e conversas do dia a dia.' },
-  { id: 'rapido', name: 'Modelo Rápido', description: 'Para perguntas e respostas objetivas.' },
-  { id: 'analitico', name: 'Modelo Analítico', description: 'Para raciocínio e análise de problemas.' },
-];
-
-const getModelName = (id) => MODELS.find((item) => item.id === id)?.name ?? 'Modelo';
+// Modelo fixo no backend (docker/Dockerfile).
+const MODEL_NAME = 'qwen2.5-coder:1.5b';
 const timeLabel = (date) => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(date));
 
-export default function ChatPanel({ conversation, selectedId, newChatCount, model, onModelChange, onSubmit, sending, loading, error, onOpenMenu }) {
+// O App troca a "key" deste componente ao mudar de conversa, o que já limpa o rascunho.
+export default function ChatPanel({ conversation, onSubmit, sending, loading, error, onOpenMenu }) {
   const [draft, setDraft] = useState('');
   const textareaRef = useRef(null);
   const bottomRef = useRef(null);
-  const activeModel = conversation?.model ?? model;
-
-  useEffect(() => { setDraft(''); }, [selectedId, newChatCount]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [conversation?.messages.length, sending]);
 
   async function handleSubmit(event) {
@@ -60,10 +53,10 @@ export default function ChatPanel({ conversation, selectedId, newChatCount, mode
         </div>
         <span
           className="flex shrink-0 items-center gap-2 rounded-full border border-[#e8eaf2] bg-white p-2.5 text-[11px] font-semibold text-[#6d7385] sm:px-3"
-          title={getModelName(activeModel)}
+          title={MODEL_NAME}
         >
           <span className="size-[7px] rounded-full bg-[#786af6]" />
-          <span className="hidden sm:inline">{getModelName(activeModel)}</span>
+          <span className="hidden sm:inline">{MODEL_NAME}</span>
         </span>
       </header>
 
@@ -99,7 +92,7 @@ export default function ChatPanel({ conversation, selectedId, newChatCount, mode
               );
             })}
             {sending && (
-              <div className="flex max-w-[84%] gap-3" role="status" aria-label="Gerando resposta simulada">
+              <div className="flex max-w-[84%] gap-3" role="status" aria-label="Gerando resposta">
                 <span className="grid size-[33px] shrink-0 place-items-center rounded-[10px] bg-[#efebff] text-[#7b6af0]"><Icon name="sparkle" /></span>
                 <div className="flex items-center gap-1.5 rounded-xl border border-[#edf0f6] bg-white px-4 py-3">
                   <span className="size-[7px] animate-pulse rounded-full bg-[#9c93df]" />
@@ -120,25 +113,8 @@ export default function ChatPanel({ conversation, selectedId, newChatCount, mode
               O que vamos criar hoje?
             </h2>
             <p className="mx-auto mb-6 max-w-[480px] text-xs leading-[1.7] text-[#858c9d] sm:mb-8 sm:text-sm">
-              Escolha um modelo e comece uma conversa. Seu histórico ficará disponível na barra lateral.
+              Comece uma conversa. Seu histórico ficará disponível na barra lateral.
             </p>
-            <div className="mx-auto w-full max-w-[335px] text-left">
-              <label htmlFor="model-select" className="mb-2.5 block text-xs font-bold text-[#4e5566]">Selecionar modelo</label>
-              <div className="relative">
-                <select
-                  id="model-select"
-                  value={model}
-                  onChange={(event) => onModelChange(event.target.value)}
-                  className="h-12 w-full cursor-pointer appearance-none rounded-xl border border-[#e2e5ef] bg-white py-0 pl-4 pr-11 text-[13px] font-semibold text-[#343b53] shadow-[0_4px_14px_#23284308] outline-none focus:border-[#a89bf8] focus:ring-2 focus:ring-[#a89bf8]/25"
-                >
-                  {MODELS.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
-                </select>
-                <Icon name="chevronDown" size={18} className="pointer-events-none absolute right-3.5 top-[15px] text-[#7a8297]" />
-              </div>
-              <p className="mt-2.5 px-0.5 text-[11px] text-[#979cad]">
-                {MODELS.find((option) => option.id === model)?.description}
-              </p>
-            </div>
             <div className="mx-auto mt-7 grid max-w-[350px] grid-cols-1 gap-2 lg:mt-10 lg:max-w-none lg:grid-cols-3 lg:gap-3">
               {['Me ajude a planejar um projeto', 'Explique como funciona uma API', 'Quero aprender React'].map((suggestion) => (
                 <button
@@ -185,7 +161,7 @@ export default function ChatPanel({ conversation, selectedId, newChatCount, mode
           </button>
         </form>
         <p className="mt-2.5 text-center text-[9px] text-[#a1a6b3] sm:text-[10px]">
-          Projeto demonstrativo · Respostas geradas por uma API fake, não por IA real.
+          Respostas geradas por IA local · podem conter erros.
         </p>
       </div>
     </main>

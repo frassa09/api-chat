@@ -1,19 +1,19 @@
-
 import { useEffect, useRef, useState } from 'react';
 import Sidebar from './components/Sidebar.jsx';
 import ChatPanel from './components/ChatPanel.jsx';
 import {
   createConversation,
+  generateTitle,
   getConversation,
   listConversations,
   sendMessage,
 } from './services/chatApi.js';
 
+// TODO: rotas (react-router-dom): "/" Login, "/cadastro" Cadastro, "/chat" esta tela (só logado).
 export default function App() {
   const [conversations, setConversations] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [activeConversation, setActiveConversation] = useState(null);
-  const [model, setModel] = useState('equilibrado');
   const [listLoading, setListLoading] = useState(true);
   const [chatLoading, setChatLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -40,8 +40,7 @@ export default function App() {
     viewVersion.current += 1; // Ignora respostas antigas ao trocar de tela.
     setSelectedId(null);
     setActiveConversation(null);
-    setModel('equilibrado');
-    setNewChatCount((count) => count + 1); // Limpa até um rascunho ainda não enviado.
+    setNewChatCount((count) => count + 1); // Remonta o ChatPanel e limpa o rascunho.
     setError('');
     setSidebarOpen(false);
     setChatLoading(false);
@@ -68,20 +67,40 @@ export default function App() {
     }
   }
 
+  async function startConversation(content, version) {
+    const chat = await createConversation(content);
+    if (version === viewVersion.current) {
+      setSelectedId(chat.id);
+      setActiveConversation(chat);
+    }
+    await refreshList();
+
+    // O título gerado pela IA chega depois; se falhar, fica a primeira mensagem.
+    generateTitle(chat.id)
+      .then((title) => {
+        setConversations((list) => list.map((c) => (c.id === chat.id ? { ...c, title } : c)));
+        setActiveConversation((current) => (current?.id === chat.id ? { ...current, title } : current));
+      })
+      .catch(() => {});
+  }
+
+  async function continueConversation(id, content, version) {
+    const newMessages = await sendMessage(id, content);
+    if (version === viewVersion.current) {
+      setActiveConversation((current) => ({ ...current, messages: [...current.messages, ...newMessages] }));
+    }
+    await refreshList();
+  }
+
   async function submitMessage(content) {
     const version = viewVersion.current;
     setError('');
     setSending(true);
     try {
-      const chat = selectedId
-        ? await sendMessage(selectedId, content)
-        : await createConversation(model, content);
-      if (version === viewVersion.current) {
-        setSelectedId(chat.id);
-        setActiveConversation(chat);
-      }
-      await refreshList();
+      if (selectedId) await continueConversation(selectedId, content, version);
+      else await startConversation(content, version);
     } catch (err) {
+      // TODO: se for UnauthorizedError, redirecionar para o login.
       if (version === viewVersion.current) setError(`Não foi possível enviar: ${err.message}`);
       throw err;
     } finally {
@@ -101,11 +120,8 @@ export default function App() {
         onClose={() => setSidebarOpen(false)}
       />
       <ChatPanel
+        key={selectedId ?? `new-${newChatCount}`}
         conversation={activeConversation}
-        selectedId={selectedId}
-        newChatCount={newChatCount}
-        model={model}
-        onModelChange={setModel}
         onSubmit={submitMessage}
         sending={sending}
         loading={chatLoading}
